@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - fix-install-signing
   pull_request:
     branches:
       - main
@@ -62,6 +61,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: LodgeBookNarrator-v1.2.0-install-fix
+          name: LodgeBookNarrator-v1.4.0-Chapter-Library
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
