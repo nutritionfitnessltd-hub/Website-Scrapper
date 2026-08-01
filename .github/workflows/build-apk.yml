@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - lodge-narrator-apk
+      - fix-install-signing
   pull_request:
     branches:
       - main
@@ -23,17 +23,45 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Restore stable debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: lodge-book-narrator-signing-v1
+
+      - name: Create signing key if missing
+        shell: bash
+        run: |
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore ~/.android/debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Lodge Book Narrator, OU=Publishing, O=The Lodge Marketing Machine, L=Leeds, ST=West Yorkshire, C=GB"
+          fi
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Build debug APK
-        run: gradle assembleDebug
+      - name: Build APK
+        run: gradle clean assembleDebug
+
+      - name: Verify APK signature
+        shell: bash
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: LodgeBookNarrator-debug
+          name: LodgeBookNarrator-v1.2.0-install-fix
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
