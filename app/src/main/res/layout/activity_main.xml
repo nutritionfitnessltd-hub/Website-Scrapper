@@ -23,7 +23,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Audiobook Narrator"
+            android:text="British Audiobook Narrator"
             android:textColor="@color/gold"
             android:textSize="18sp"
             android:gravity="center"
@@ -50,10 +50,32 @@
             android:inputType="textPassword"
             android:singleLine="true" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/saveKeyButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Save Key Securely"
+                android:layout_marginEnd="5dp" />
+
+            <Button
+                android:id="@+id/forgetKeyButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Forget Key"
+                android:layout_marginStart="5dp" />
+        </LinearLayout>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Voice"
+            android:text="British narration voice"
             android:textStyle="bold"
             android:paddingTop="12dp" />
 
@@ -62,11 +84,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cedar is the recommended warm British book voice. Marin is clearer and more conversational. Onyx is deeper and more formal."
+            android:textSize="12sp"
+            android:textColor="#555555"
+            android:paddingTop="6dp" />
+
         <Button
             android:id="@+id/sampleButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Generate Voice Sample"
+            android:text="Generate British Voice Sample"
             android:layout_marginTop="16dp" />
 
         <Button
@@ -178,7 +208,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Newly generated audio is loaded into the player automatically. You can also select any AAC, MP3 or supported audio file from your phone."
+            android:text="Newly generated audio is loaded automatically. You can also select AAC, MP3 or another supported audio file from your phone."
             android:textSize="12sp"
             android:textColor="#555555"
             android:paddingTop="10dp"
@@ -187,7 +217,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Audio is AI-generated. Files are saved in Downloads/LodgeMarketingMachineAudio. Your API key is used only for the current session and is not saved."
+            android:text="Audio is AI-generated. Files are saved in Downloads/LodgeMarketingMachineAudio. Your API key is encrypted using Android's device keystore and is never embedded in the APK."
             android:textSize="12sp"
             android:textColor="#555555" />
     </LinearLayout>
