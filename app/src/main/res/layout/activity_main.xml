@@ -1,0 +1,18 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:background="@color/cream">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="THE LODGE MARKETING MACHINE" android:textColor="@color/navy" android:textStyle="bold" android:textSize="24sp" android:gravity="center" android:paddingTop="16dp"/>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Audiobook Narrator" android:textColor="@color/gold" android:textSize="18sp" android:gravity="center" android:paddingBottom="20dp"/>
+        <Button android:id="@+id/selectButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Select Narration Master File"/>
+        <TextView android:id="@+id/fileStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="No narration file selected" android:paddingBottom="12dp"/>
+        <EditText android:id="@+id/apiKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="OpenAI API key" android:inputType="textPassword" android:singleLine="true"/>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Voice" android:textStyle="bold" android:paddingTop="12dp"/>
+        <Spinner android:id="@+id/voiceSpinner" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <Button android:id="@+id/sampleButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Generate Voice Sample" android:layout_marginTop="16dp"/>
+        <Button android:id="@+id/chapterButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Generate Chapter 1"/>
+        <Button android:id="@+id/fullButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Generate Full Book"/>
+        <Button android:id="@+id/stopButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Stop After Current Part"/>
+        <ProgressBar android:id="@+id/progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:max="100" android:layout_marginTop="16dp"/>
+        <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ready" android:textColor="@color/text" android:textSize="15sp" android:paddingTop="12dp" android:paddingBottom="20dp"/>
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Audio is AI-generated. Files are saved in Downloads/LodgeMarketingMachineAudio. Your API key is used only for the current session and is not saved." android:textSize="12sp" android:textColor="#555555"/>
+    </LinearLayout>
+</ScrollView>
