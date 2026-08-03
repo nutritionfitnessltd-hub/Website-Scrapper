@@ -161,6 +161,11 @@
                         android:layout_height="wrap_content"
                         android:text="Generate Remaining Book Chapters" />
 
+                    <com.lodgemarketingmachine.narrator.ExportPackageButton
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp" />
+
                     <Button
                         android:id="@+id/stopButton"
                         android:layout_width="match_parent"
@@ -188,7 +193,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Each chapter is generated in safe-sized parts and then assembled into one finished M4A chapter file. Finished chapters are stored in Downloads/LodgeMarketingMachineAudio and appear automatically in the Chapter Library."
+                        android:text="Each chapter is generated in safe-sized parts and then assembled into one finished M4A chapter file. Finished chapters are stored in Downloads/LodgeMarketingMachineAudio and appear automatically in the Chapter Library. The export button creates one ZIP containing every finished chapter for the final Reader Edition APK."
                         android:textSize="12sp"
                         android:textColor="#555555" />
                 </LinearLayout>
