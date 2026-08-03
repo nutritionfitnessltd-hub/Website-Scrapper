@@ -1,10 +1,7 @@
-name: Build APK
+name: Build Reader Edition
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -22,7 +19,7 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Restore stable debug signing key
+      - name: Restore stable signing key
         uses: actions/cache@v4
         with:
           path: ~/.android/debug.keystore
@@ -41,7 +38,7 @@ jobs:
               -keyalg RSA \
               -keysize 2048 \
               -validity 10000 \
-              -dname "CN=Lodge Book Narrator, OU=Publishing, O=The Lodge Marketing Machine, L=Leeds, ST=West Yorkshire, C=GB"
+              -dname "CN=Lodge Marketing Machine Reader, OU=Publishing, O=The Lodge Marketing Machine, L=Leeds, ST=West Yorkshire, C=GB"
           fi
 
       - name: Set up Gradle
@@ -49,18 +46,40 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build APK
+      - name: Build Reader Edition base APK
         run: gradle clean assembleDebug
 
-      - name: Verify APK signature
+      - name: Verify base APK signature
         shell: bash
         run: |
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print -quit)
           "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload APK
+      - name: Package Android signing tools
+        shell: bash
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print -quit)
+          BUILD_TOOLS_DIR=$(dirname "$APKSIGNER")
+          LIBCPP=$(find "$ANDROID_HOME" -type f -name libc++.so -print -quit)
+          test -n "$LIBCPP"
+          mkdir -p signing-tools/lib
+          cp "$BUILD_TOOLS_DIR/apksigner" signing-tools/
+          cp "$BUILD_TOOLS_DIR/zipalign" signing-tools/
+          cp "$BUILD_TOOLS_DIR/lib/apksigner.jar" signing-tools/lib/
+          cp "$LIBCPP" signing-tools/libc++.so
+          chmod +x signing-tools/apksigner signing-tools/zipalign
+          tar -czf android-signing-tools.tar.gz signing-tools
+
+      - name: Upload Reader Edition base APK
         uses: actions/upload-artifact@v4
         with:
-          name: LodgeBookNarrator-v1.5.0-Package-Export
+          name: LodgeMarketingMachine-Reader-Base
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Upload Android signing tools
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-Signing-Tools
+          path: android-signing-tools.tar.gz
           if-no-files-found: error
