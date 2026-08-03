@@ -1,120 +1,139 @@
 package com.lodgemarketingmachine.narrator;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
+import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.media.AudioAttributes;
 import android.media.MediaPlayer;
-import android.net.Uri;
+import android.media.PlaybackParams;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Html;
+import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ArrayAdapter;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
-    private static final int PICK_NARRATION_FILE = 41;
-    private static final String API_URL = "https://api.openai.com/v1/audio/speech";
+    private static final String PREFS_NAME = "lodge_marketing_machine_reader";
+    private static final String PREF_LAST_CHAPTER = "last_chapter";
+    private static final String PREF_TEXT_SIZE = "text_size";
+    private static final String PREF_DARK_MODE = "dark_mode";
+    private static final String PREF_SPEED = "speed_position";
+    private static final String PREF_AUDIO_POSITION_PREFIX = "audio_position_";
+    private static final String PREF_READ_POSITION_PREFIX = "read_position_";
 
-    private static final String PREFS_NAME = "lodge_narrator_preferences";
-    private static final String PREF_VOICE_POSITION = "british_voice_position";
-    private static final String PREF_NARRATION_URI = "narration_master_uri";
-    private static final String PREF_PLAYBACK_PREFIX = "playback_";
-
-    private static final String[] VOICE_LABELS = {
-            "British Warm and Authoritative — Cedar",
-            "British Clear and Conversational — Marin",
-            "British Deep and Formal — Onyx"
+    private static final String[] SPEED_LABELS = {
+            "0.75×", "1.0×", "1.25×", "1.5×", "1.75×", "2.0×"
     };
-
-    private static final String[] API_VOICES = {"cedar", "marin", "onyx"};
-
-    private static final String[] VOICE_STYLES = {
-            "Use a natural contemporary British English accent with a warm, mature and quietly authoritative tone. Keep the delivery measured, thoughtful and approachable. Do not sound American, theatrical, commercial or overly solemn.",
-            "Use a natural contemporary British English accent with clear diction and a warm conversational tone. Sound intelligent, calm and engaging. Do not sound American, synthetic, theatrical or over-enthusiastic.",
-            "Use a natural contemporary British English accent with a deeper, formal and dignified delivery. Remain human and conversational rather than ceremonial or dramatic. Do not sound American or like a promotional voice-over."
+    private static final float[] SPEED_VALUES = {
+            0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f
     };
-
-    private static final String COMMON_INSTRUCTIONS =
-            "Narrate this British leadership book faithfully. Use measured pacing, clear diction and gentle emphasis. " +
-            "Pause briefly after chapter titles, section headings, quotations and reflective questions. " +
-            "Pronounce British and Masonic terminology naturally and consistently. " +
-            "Read the supplied text without adding commentary, introductions or omitted wording.";
+    private static final String[] SLEEP_LABELS = {
+            "Off", "15 minutes", "30 minutes", "45 minutes", "60 minutes"
+    };
+    private static final int[] SLEEP_MINUTES = {0, 15, 30, 45, 60};
 
     private SharedPreferences preferences;
-    private SecureApiKeyStore secureApiKeyStore;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final Handler playerHandler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final List<Chapter> chapters = new ArrayList<>();
 
-    private EditText apiKey;
-    private Spinner voiceSpinner;
-    private ProgressBar generationProgress;
-    private TextView generationStatus;
-    private TextView narrationFileStatus;
-    private Button selectNarrationButton;
-    private Button saveKeyButton;
-    private Button forgetKeyButton;
-    private Button sampleButton;
-    private Button chapterOneButton;
-    private Button fullBookButton;
-    private Button stopGenerationButton;
-
+    private LinearLayout root;
+    private LinearLayout headerPanel;
+    private TabHost tabHost;
+    private ImageView coverImage;
+    private TextView headerTitle;
+    private TextView headerSubtitle;
+    private TextView bookTitle;
+    private TextView bookAuthor;
     private TextView libraryStatus;
-    private ListView chapterList;
-    private Button refreshLibraryButton;
+    private ListView libraryList;
+    private Button continueButton;
+
+    private TextView readTitle;
+    private TextView readBody;
+    private ScrollView readScroll;
+    private Button fontDownButton;
+    private Button fontUpButton;
+    private Button darkModeButton;
+    private Button readPreviousButton;
+    private Button readNextButton;
+    private Button listenThisButton;
+
+    private Spinner listenChapterSpinner;
+    private Spinner speedSpinner;
+    private Spinner sleepSpinner;
     private TextView nowPlaying;
-    private SeekBar playerSeek;
     private TextView playerTime;
-    private Button previousButton;
+    private TextView sleepStatus;
+    private SeekBar playerSeek;
+    private Button playerPreviousButton;
     private Button playPauseButton;
-    private Button nextButton;
+    private Button playerNextButton;
     private Button playerStopButton;
 
-    private final List<ChapterAudioStore.Entry> libraryEntries = new ArrayList<>();
-    private ChapterAdapter chapterAdapter;
+    private ChapterAdapter libraryAdapter;
+    private ArrayAdapter<String> chapterSpinnerAdapter;
+
+    private int currentChapterIndex = 0;
+    private int currentAudioIndex = -1;
+    private boolean suppressChapterSpinner = false;
+    private boolean suppressSleepSpinner = false;
+    private float readerTextSize = 18f;
+    private boolean darkMode = false;
+
     private MediaPlayer mediaPlayer;
     private boolean playerPrepared = false;
-    private int currentIndex = -1;
-    private long lastPositionSaveAt = 0L;
-    private volatile boolean stopRequested = false;
-    private String narrationText = "";
+    private long lastAudioSaveAt = 0L;
+    private long sleepDeadline = 0L;
+
+    private final Runnable sleepRunnable = new Runnable() {
+        @Override public void run() {
+            if (mediaPlayer != null && playerPrepared) {
+                try {
+                    if (mediaPlayer.isPlaying()) mediaPlayer.pause();
+                } catch (IllegalStateException ignored) {}
+            }
+            sleepDeadline = 0L;
+            suppressSleepSpinner = true;
+            sleepSpinner.setSelection(0);
+            suppressSleepSpinner = false;
+            sleepStatus.setText("Sleep timer finished. Playback paused.");
+            playPauseButton.setText("Play");
+        }
+    };
 
     private final Runnable playerProgressUpdater = new Runnable() {
         @Override public void run() {
-            if (mediaPlayer != null && playerPrepared && currentIndex >= 0 && currentIndex < libraryEntries.size()) {
+            if (mediaPlayer != null && playerPrepared) {
                 try {
                     int position = mediaPlayer.getCurrentPosition();
                     int duration = mediaPlayer.getDuration();
@@ -122,527 +141,323 @@ public class MainActivity extends Activity {
                     playerSeek.setProgress(position);
                     playerTime.setText(formatTime(position) + " / " + formatTime(duration));
                     long now = System.currentTimeMillis();
-                    if (now - lastPositionSaveAt > 5000L) {
-                        savePlaybackPosition(libraryEntries.get(currentIndex), position, duration);
-                        lastPositionSaveAt = now;
-                        chapterAdapter.notifyDataSetChanged();
+                    if (now - lastAudioSaveAt > 3000L) {
+                        saveAudioPosition(position, duration);
+                        lastAudioSaveAt = now;
                     }
                 } catch (IllegalStateException ignored) {}
             }
-            playerHandler.postDelayed(this, 500L);
+
+            if (sleepDeadline > 0L) {
+                long remaining = Math.max(0L, sleepDeadline - System.currentTimeMillis());
+                sleepStatus.setText("Sleep timer: " + formatTimeLong(remaining));
+            }
+            handler.postDelayed(this, 500L);
         }
     };
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
         preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        secureApiKeyStore = new SecureApiKeyStore(this);
         bindViews();
         setupTabs();
-        setupVoiceSelection();
-        setupActions();
-        restoreSecureKey();
-        restoreNarrationFile();
-        refreshLibrary(null, false);
-        playerHandler.post(playerProgressUpdater);
+        setupStaticControls();
+        loadBook();
+        loadCover();
+        restoreReaderSettings();
+        setupBookControls();
+        int savedChapter = preferences.getInt(PREF_LAST_CHAPTER, 0);
+        selectChapter(clampChapter(savedChapter), false);
+        handler.post(playerProgressUpdater);
     }
 
     private void bindViews() {
-        apiKey = findViewById(R.id.apiKey);
-        voiceSpinner = findViewById(R.id.voiceSpinner);
-        generationProgress = findViewById(R.id.progress);
-        generationStatus = findViewById(R.id.status);
-        narrationFileStatus = findViewById(R.id.fileStatus);
-        selectNarrationButton = findViewById(R.id.selectButton);
-        saveKeyButton = findViewById(R.id.saveKeyButton);
-        forgetKeyButton = findViewById(R.id.forgetKeyButton);
-        sampleButton = findViewById(R.id.sampleButton);
-        chapterOneButton = findViewById(R.id.chapterButton);
-        fullBookButton = findViewById(R.id.fullButton);
-        stopGenerationButton = findViewById(R.id.stopButton);
-
+        root = findViewById(R.id.root);
+        headerPanel = findViewById(R.id.headerPanel);
+        headerTitle = findViewById(R.id.headerTitle);
+        headerSubtitle = findViewById(R.id.headerSubtitle);
+        coverImage = findViewById(R.id.coverImage);
+        bookTitle = findViewById(R.id.bookTitle);
+        bookAuthor = findViewById(R.id.bookAuthor);
         libraryStatus = findViewById(R.id.libraryStatus);
-        chapterList = findViewById(R.id.chapterList);
-        refreshLibraryButton = findViewById(R.id.refreshLibraryButton);
-        nowPlaying = findViewById(R.id.nowPlaying);
-        playerSeek = findViewById(R.id.playerSeek);
-        playerTime = findViewById(R.id.playerTime);
-        previousButton = findViewById(R.id.previousButton);
-        playPauseButton = findViewById(R.id.playPauseButton);
-        nextButton = findViewById(R.id.nextButton);
-        playerStopButton = findViewById(R.id.playerStopButton);
+        libraryList = findViewById(R.id.libraryList);
+        continueButton = findViewById(R.id.continueButton);
 
-        chapterAdapter = new ChapterAdapter();
-        chapterList.setAdapter(chapterAdapter);
-        stopGenerationButton.setEnabled(false);
-        setPlayerButtons(false);
+        readTitle = findViewById(R.id.readTitle);
+        readBody = findViewById(R.id.readBody);
+        readScroll = findViewById(R.id.readScroll);
+        fontDownButton = findViewById(R.id.fontDownButton);
+        fontUpButton = findViewById(R.id.fontUpButton);
+        darkModeButton = findViewById(R.id.darkModeButton);
+        readPreviousButton = findViewById(R.id.readPreviousButton);
+        readNextButton = findViewById(R.id.readNextButton);
+        listenThisButton = findViewById(R.id.listenThisButton);
+
+        listenChapterSpinner = findViewById(R.id.listenChapterSpinner);
+        speedSpinner = findViewById(R.id.speedSpinner);
+        sleepSpinner = findViewById(R.id.sleepSpinner);
+        nowPlaying = findViewById(R.id.nowPlaying);
+        playerTime = findViewById(R.id.playerTime);
+        sleepStatus = findViewById(R.id.sleepStatus);
+        playerSeek = findViewById(R.id.playerSeek);
+        playerPreviousButton = findViewById(R.id.playerPreviousButton);
+        playPauseButton = findViewById(R.id.playPauseButton);
+        playerNextButton = findViewById(R.id.playerNextButton);
+        playerStopButton = findViewById(R.id.playerStopButton);
     }
 
     private void setupTabs() {
-        TabHost tabHost = findViewById(android.R.id.tabhost);
+        tabHost = findViewById(android.R.id.tabhost);
         tabHost.setup();
-        tabHost.addTab(tabHost.newTabSpec("generate")
-                .setIndicator("Generate")
-                .setContent(R.id.generateTab));
-        tabHost.addTab(tabHost.newTabSpec("library")
-                .setIndicator("Chapter Library")
-                .setContent(R.id.libraryTab));
+        tabHost.addTab(tabHost.newTabSpec("library").setIndicator("Library").setContent(R.id.libraryTab));
+        tabHost.addTab(tabHost.newTabSpec("read").setIndicator("Read").setContent(R.id.readTab));
+        tabHost.addTab(tabHost.newTabSpec("listen").setIndicator("Listen").setContent(R.id.listenTab));
     }
 
-    private void setupVoiceSelection() {
-        voiceSpinner.setAdapter(new ArrayAdapter<>(this,
+    private void setupStaticControls() {
+        speedSpinner.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item,
-                VOICE_LABELS));
-        int savedPosition = preferences.getInt(PREF_VOICE_POSITION, 0);
-        if (savedPosition < 0 || savedPosition >= VOICE_LABELS.length) savedPosition = 0;
-        voiceSpinner.setSelection(savedPosition);
-        voiceSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                SPEED_LABELS));
+        sleepSpinner.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,
+                SLEEP_LABELS));
+
+        speedSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                preferences.edit().putInt(PREF_VOICE_POSITION, position).apply();
+                preferences.edit().putInt(PREF_SPEED, position).apply();
+                applyPlaybackSpeed();
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
-    }
 
-    private void setupActions() {
-        selectNarrationButton.setOnClickListener(view -> chooseNarrationFile());
-        saveKeyButton.setOnClickListener(view -> saveEnteredKey());
-        forgetKeyButton.setOnClickListener(view -> forgetSavedKey());
-        sampleButton.setOnClickListener(view -> generateSample());
-        chapterOneButton.setOnClickListener(view -> generateChapterOne());
-        fullBookButton.setOnClickListener(view -> generateFullBook());
-        stopGenerationButton.setOnClickListener(view -> {
-            stopRequested = true;
-            generationStatus.setText("Stopping after the current audio request…");
+        sleepSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (!suppressSleepSpinner) setSleepTimer(position);
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        refreshLibraryButton.setOnClickListener(view -> refreshLibrary(null, false));
-        chapterList.setOnItemClickListener((parent, view, position, id) -> loadChapter(position, true));
-        previousButton.setOnClickListener(view -> playPrevious());
+        fontDownButton.setOnClickListener(view -> changeTextSize(-1f));
+        fontUpButton.setOnClickListener(view -> changeTextSize(1f));
+        darkModeButton.setOnClickListener(view -> {
+            darkMode = !darkMode;
+            preferences.edit().putBoolean(PREF_DARK_MODE, darkMode).apply();
+            applyTheme();
+        });
+
+        readPreviousButton.setOnClickListener(view -> selectChapter(currentChapterIndex - 1, true));
+        readNextButton.setOnClickListener(view -> selectChapter(currentChapterIndex + 1, true));
+        listenThisButton.setOnClickListener(view -> {
+            tabHost.setCurrentTabByTag("listen");
+            loadAudioForChapter(currentChapterIndex, true);
+        });
+
+        playerPreviousButton.setOnClickListener(view -> playPreviousAudio());
         playPauseButton.setOnClickListener(view -> togglePlayback());
-        nextButton.setOnClickListener(view -> playNext());
+        playerNextButton.setOnClickListener(view -> playNextAudio());
         playerStopButton.setOnClickListener(view -> stopPlayback());
+
         playerSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
+            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser && mediaPlayer != null && playerPrepared) {
-                    try { mediaPlayer.seekTo(progressValue); } catch (IllegalStateException ignored) {}
+                    try { mediaPlayer.seekTo(progress); } catch (IllegalStateException ignored) {}
                 }
             }
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override public void onStopTrackingTouch(SeekBar seekBar) {
-                saveCurrentPlaybackPosition();
+            @Override public void onStopTrackingTouch(SeekBar seekBar) { saveCurrentAudioPosition(); }
+        });
+
+        readScroll.setOnScrollChangeListener((view, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            if (!chapters.isEmpty()) {
+                preferences.edit().putInt(
+                        PREF_READ_POSITION_PREFIX + chapters.get(currentChapterIndex).id,
+                        scrollY).apply();
             }
         });
     }
 
-    private void restoreSecureKey() {
-        String remembered = secureApiKeyStore.load();
-        if (!remembered.isEmpty()) {
-            apiKey.setText(remembered);
-            generationStatus.setText("Saved API key restored securely. Ready.");
-        }
-    }
-
-    private void restoreNarrationFile() {
-        String savedUri = preferences.getString(PREF_NARRATION_URI, "");
-        if (savedUri.isEmpty()) return;
+    private void loadBook() {
+        chapters.clear();
+        String title = "The Lodge Marketing Machine";
+        String author = "W.Bro Calam";
+        String subtitle = "Reader Edition";
         try {
-            loadNarrationFile(Uri.parse(savedUri));
-        } catch (Exception exception) {
-            preferences.edit().remove(PREF_NARRATION_URI).apply();
-            narrationFileStatus.setText("Select the Narration Master file");
-        }
-    }
-
-    private void chooseNarrationFile() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/*");
-        startActivityForResult(intent, PICK_NARRATION_FILE);
-    }
-
-    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != PICK_NARRATION_FILE || resultCode != RESULT_OK || data == null || data.getData() == null) return;
-        Uri uri = data.getData();
-        try {
-            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        } catch (SecurityException ignored) {}
-        try {
-            loadNarrationFile(uri);
-            preferences.edit().putString(PREF_NARRATION_URI, uri.toString()).apply();
-            generationStatus.setText("Narration Master loaded. Ready.");
-            refreshLibrary(null, false);
-        } catch (Exception exception) {
-            generationStatus.setText("Could not open the narration file: " + exception.getMessage());
-        }
-    }
-
-    private void loadNarrationFile(Uri uri) throws Exception {
-        narrationText = readUri(uri);
-        narrationFileStatus.setText("Loaded: " + displayName(uri));
-    }
-
-    private String readUri(Uri uri) throws Exception {
-        try (InputStream input = getContentResolver().openInputStream(uri);
-             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-            if (input == null) throw new Exception("The file could not be read.");
-            byte[] buffer = new byte[8192];
-            int count;
-            while ((count = input.read(buffer)) > 0) output.write(buffer, 0, count);
-            return output.toString(StandardCharsets.UTF_8.name());
-        }
-    }
-
-    private String displayName(Uri uri) {
-        try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int column = cursor.getColumnIndex("_display_name");
-                if (column >= 0) return cursor.getString(column);
+            JSONObject book = new JSONObject(readAssetText("book.json"));
+            title = book.optString("title", title);
+            author = book.optString("author", author);
+            subtitle = book.optString("subtitle", subtitle);
+            JSONArray chapterArray = book.getJSONArray("chapters");
+            for (int index = 0; index < chapterArray.length(); index++) {
+                JSONObject item = chapterArray.getJSONObject(index);
+                chapters.add(new Chapter(
+                        item.optString("id", "section_" + index),
+                        item.optString("title", "Section " + (index + 1)),
+                        item.optString("html", ""),
+                        item.optString("audio", "")));
             }
-        } catch (Exception ignored) {}
-        return "Narration_Master.md";
-    }
-
-    private boolean looksLikeApiKey(String value) {
-        return value.startsWith("sk-") && value.length() >= 20;
-    }
-
-    private boolean validKey() {
-        String key = apiKey.getText().toString().trim();
-        if (!looksLikeApiKey(key)) {
-            Toast.makeText(this, "Enter a valid OpenAI API key.", Toast.LENGTH_LONG).show();
-            return false;
-        }
-        try { secureApiKeyStore.save(key); }
-        catch (Exception exception) {
-            generationStatus.setText("The key can be used now but could not be remembered securely.");
-        }
-        return true;
-    }
-
-    private void saveEnteredKey() {
-        String key = apiKey.getText().toString().trim();
-        if (!looksLikeApiKey(key)) {
-            Toast.makeText(this, "Enter a valid OpenAI API key first.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        try {
-            secureApiKeyStore.save(key);
-            generationStatus.setText("API key saved securely on this device.");
-            Toast.makeText(this, "API key remembered securely.", Toast.LENGTH_SHORT).show();
         } catch (Exception exception) {
-            generationStatus.setText("The API key could not be saved securely: " + exception.getMessage());
+            chapters.add(new Chapter(
+                    "unavailable",
+                    "Book content unavailable",
+                    "<p>The book package could not be loaded.</p>",
+                    ""));
+        }
+        bookTitle.setText(title);
+        bookAuthor.setText(author);
+        headerTitle.setText(title.toUpperCase(Locale.UK));
+        headerSubtitle.setText(subtitle);
+        libraryStatus.setText(chapters.size() + " sections included for offline reading and listening.");
+    }
+
+    private void loadCover() {
+        try (InputStream input = getAssets().open("cover.png")) {
+            Bitmap bitmap = BitmapFactory.decodeStream(input);
+            if (bitmap != null) coverImage.setImageBitmap(bitmap);
+        } catch (Exception exception) {
+            coverImage.setVisibility(View.GONE);
         }
     }
 
-    private void forgetSavedKey() {
-        secureApiKeyStore.clear();
-        apiKey.setText("");
-        generationStatus.setText("Saved API key removed.");
+    private void restoreReaderSettings() {
+        readerTextSize = preferences.getFloat(PREF_TEXT_SIZE, 18f);
+        if (readerTextSize < 14f || readerTextSize > 30f) readerTextSize = 18f;
+        darkMode = preferences.getBoolean(PREF_DARK_MODE, false);
+        int speedPosition = preferences.getInt(PREF_SPEED, 1);
+        if (speedPosition < 0 || speedPosition >= SPEED_VALUES.length) speedPosition = 1;
+        speedSpinner.setSelection(speedPosition);
+        readBody.setTextSize(readerTextSize);
+        applyTheme();
     }
 
-    private boolean hasNarrationText() {
-        if (narrationText.trim().isEmpty()) {
-            Toast.makeText(this, "Select Narration_Master.md first.", Toast.LENGTH_LONG).show();
-            return false;
-        }
-        return true;
-    }
+    private void setupBookControls() {
+        libraryAdapter = new ChapterAdapter();
+        libraryList.setAdapter(libraryAdapter);
+        libraryList.setOnItemClickListener((parent, view, position, id) -> {
+            selectChapter(position, false);
+            tabHost.setCurrentTabByTag("read");
+        });
 
-    private void generateSample() {
-        if (!validKey()) return;
-        NarrationDocument.Section sample = new NarrationDocument.Section(
-                "british_voice_sample",
-                "British Voice Sample",
-                "Every generation inherits a lodge. Every generation has a choice. Every generation leaves a legacy. " +
-                        "This is not a book about recruiting men at any cost. It is a book about becoming a lodge worth joining, " +
-                        "communicating honestly, selecting carefully and caring properly for those who enter.");
-        runGeneration("British voice sample", Collections.singletonList(sample), false);
-    }
-
-    private void generateChapterOne() {
-        if (!validKey() || !hasNarrationText()) return;
-        for (NarrationDocument.Section section : NarrationDocument.parse(narrationText)) {
-            if (section.id.equals("chapter_01")) {
-                runGeneration("Chapter 1", Collections.singletonList(section), false);
-                return;
+        List<String> titles = new ArrayList<>();
+        for (Chapter chapter : chapters) titles.add(chapter.title);
+        chapterSpinnerAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item,
+                titles);
+        listenChapterSpinner.setAdapter(chapterSpinnerAdapter);
+        listenChapterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (!suppressChapterSpinner && position != currentAudioIndex) {
+                    loadAudioForChapter(position, false);
+                }
             }
-        }
-        generationStatus.setText("Chapter 1 could not be found in the Narration Master.");
-    }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
-    private void generateFullBook() {
-        if (!validKey() || !hasNarrationText()) return;
-        runGeneration("Full book", NarrationDocument.parse(narrationText), true);
-    }
-
-    private void runGeneration(
-            String label,
-            List<NarrationDocument.Section> requestedSections,
-            boolean skipFinishedChapters) {
-        stopRequested = false;
-        setGenerationBusy(true);
-        generationProgress.setProgress(0);
-        final String key = apiKey.getText().toString().trim();
-        final int voicePosition = voiceSpinner.getSelectedItemPosition();
-        final String voice = API_VOICES[voicePosition];
-        final String instructions = COMMON_INSTRUCTIONS + " " + VOICE_STYLES[voicePosition];
-
-        executor.execute(() -> {
-            try {
-                Set<String> existingNames = skipFinishedChapters
-                        ? ChapterAudioStore.existingDisplayNames(this)
-                        : new HashSet<>();
-                List<NarrationDocument.Section> sections = new ArrayList<>();
-                int totalParts = 0;
-                for (NarrationDocument.Section section : requestedSections) {
-                    String fileName = ChapterAudioStore.fileNameFor(section);
-                    if (skipFinishedChapters && existingNames.contains(fileName)) continue;
-                    sections.add(section);
-                    totalParts += NarrationDocument.chunks(section.text).size();
-                }
-
-                if (sections.isEmpty()) {
-                    runOnUiThread(() -> {
-                        setGenerationBusy(false);
-                        generationProgress.setProgress(100);
-                        generationStatus.setText("Every chapter is already generated and stored in the Chapter Library.");
-                        refreshLibrary(null, false);
-                    });
-                    return;
-                }
-
-                int completedParts = 0;
-                Uri lastSavedUri = null;
-                boolean stopped = false;
-
-                for (NarrationDocument.Section section : sections) {
-                    if (stopRequested) { stopped = true; break; }
-                    List<String> textParts = NarrationDocument.chunks(section.text);
-                    File buildDirectory = new File(getCacheDir(), "chapter_build_" + section.id);
-                    ChapterAudioStore.deleteRecursively(buildDirectory);
-                    if (!buildDirectory.mkdirs() && !buildDirectory.isDirectory()) {
-                        throw new Exception("Could not create temporary chapter storage.");
-                    }
-                    List<File> audioParts = new ArrayList<>();
-                    boolean chapterComplete = true;
-                    try {
-                        for (int partIndex = 0; partIndex < textParts.size(); partIndex++) {
-                            if (stopRequested) {
-                                chapterComplete = false;
-                                stopped = true;
-                                break;
-                            }
-                            updateGenerationStatus(label + ": generating part " + (partIndex + 1)
-                                    + " of " + textParts.size() + "\n" + section.title);
-                            byte[] audio = requestSpeech(key, voice, instructions, textParts.get(partIndex));
-                            File partFile = new File(buildDirectory,
-                                    String.format(Locale.UK, "part_%03d.aac", partIndex + 1));
-                            try (OutputStream output = new FileOutputStream(partFile)) {
-                                output.write(audio);
-                            }
-                            audioParts.add(partFile);
-                            completedParts++;
-                            int percent = (int)Math.round(completedParts * 100.0 / Math.max(totalParts, 1));
-                            updateGenerationProgress(percent);
-                        }
-
-                        if (!chapterComplete) break;
-                        updateGenerationStatus("Joining " + audioParts.size() + " audio parts into one chapter…\n" + section.title);
-                        String fileName = ChapterAudioStore.fileNameFor(section);
-                        lastSavedUri = ChapterAudioStore.saveMergedChapter(
-                                this,
-                                audioParts,
-                                fileName,
-                                section.title);
-                        Uri savedForUi = lastSavedUri;
-                        runOnUiThread(() -> refreshLibrary(savedForUi, false));
-                    } finally {
-                        ChapterAudioStore.deleteRecursively(buildDirectory);
-                    }
-                }
-
-                Uri finalSavedUri = lastSavedUri;
-                boolean finalStopped = stopped;
-                runOnUiThread(() -> {
-                    setGenerationBusy(false);
-                    refreshLibrary(finalSavedUri, finalSavedUri != null);
-                    if (finalStopped) {
-                        generationStatus.setText("Stopped safely. Finished chapters remain in the Chapter Library; the incomplete chapter was discarded.");
-                    } else {
-                        generationProgress.setProgress(100);
-                        generationStatus.setText("Complete. Each finished chapter is stored as one chapter file in the Chapter Library.");
-                    }
-                });
-            } catch (Exception exception) {
-                runOnUiThread(() -> {
-                    setGenerationBusy(false);
-                    generationStatus.setText("Error: " + exception.getMessage());
-                });
-            }
+        continueButton.setOnClickListener(view -> {
+            int chapter = clampChapter(preferences.getInt(PREF_LAST_CHAPTER, 0));
+            selectChapter(chapter, false);
+            tabHost.setCurrentTabByTag("read");
         });
     }
 
-    private byte[] requestSpeech(String key, String voice, String instructions, String text) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection)new URL(API_URL).openConnection();
-        connection.setRequestMethod("POST");
-        connection.setConnectTimeout(30000);
-        connection.setReadTimeout(180000);
-        connection.setDoOutput(true);
-        connection.setRequestProperty("Authorization", "Bearer " + key);
-        connection.setRequestProperty("Content-Type", "application/json");
+    private void selectChapter(int requestedIndex, boolean keepReadTab) {
+        if (chapters.isEmpty()) return;
+        int index = clampChapter(requestedIndex);
+        currentChapterIndex = index;
+        Chapter chapter = chapters.get(index);
+        preferences.edit().putInt(PREF_LAST_CHAPTER, index).apply();
+        continueButton.setText("Continue: " + chapter.title);
+        readTitle.setText(chapter.title);
+        Spanned formatted = Html.fromHtml(chapter.html, Html.FROM_HTML_MODE_LEGACY);
+        readBody.setText(formatted);
+        readBody.setTextSize(readerTextSize);
+        readPreviousButton.setEnabled(index > 0);
+        readNextButton.setEnabled(index < chapters.size() - 1);
+        listenThisButton.setEnabled(!chapter.audio.isEmpty());
+        if (libraryAdapter != null) libraryAdapter.notifyDataSetChanged();
 
-        JSONObject body = new JSONObject();
-        body.put("model", "gpt-4o-mini-tts");
-        body.put("voice", voice);
-        body.put("input", text);
-        body.put("instructions", instructions);
-        body.put("response_format", "aac");
-        body.put("speed", 0.96);
-
-        try (OutputStream output = connection.getOutputStream()) {
-            output.write(body.toString().getBytes(StandardCharsets.UTF_8));
-        }
-
-        int responseCode = connection.getResponseCode();
-        InputStream input = responseCode >= 200 && responseCode < 300
-                ? connection.getInputStream()
-                : connection.getErrorStream();
-        ByteArrayOutputStream response = new ByteArrayOutputStream();
-        byte[] buffer = new byte[8192];
-        int count;
-        while ((count = input.read(buffer)) > 0) response.write(buffer, 0, count);
-        input.close();
-        connection.disconnect();
-        byte[] data = response.toByteArray();
-        if (responseCode < 200 || responseCode >= 300) {
-            throw new Exception("OpenAI returned " + responseCode + ": "
-                    + new String(data, StandardCharsets.UTF_8));
-        }
-        return data;
+        int savedScroll = preferences.getInt(PREF_READ_POSITION_PREFIX + chapter.id, 0);
+        readScroll.post(() -> readScroll.scrollTo(0, Math.max(0, savedScroll)));
+        if (keepReadTab) tabHost.setCurrentTabByTag("read");
     }
 
-    private void refreshLibrary(Uri selectUri, boolean autoplay) {
-        String currentName = currentIndex >= 0 && currentIndex < libraryEntries.size()
-                ? libraryEntries.get(currentIndex).displayName
-                : null;
-        libraryEntries.clear();
-        libraryEntries.addAll(ChapterAudioStore.list(this));
-        currentIndex = -1;
-
-        if (selectUri != null) {
-            for (int index = 0; index < libraryEntries.size(); index++) {
-                if (libraryEntries.get(index).uri.toString().equals(selectUri.toString())) {
-                    currentIndex = index;
-                    break;
-                }
-            }
-        } else if (currentName != null) {
-            for (int index = 0; index < libraryEntries.size(); index++) {
-                if (libraryEntries.get(index).displayName.equals(currentName)) {
-                    currentIndex = index;
-                    break;
-                }
-            }
-        }
-
-        chapterAdapter.notifyDataSetChanged();
-        updateLibraryStatus();
-        setPlayerButtons(currentIndex >= 0 || !libraryEntries.isEmpty());
-        if (currentIndex >= 0) {
-            chapterList.setSelection(currentIndex);
-            if (selectUri != null) loadChapter(currentIndex, autoplay);
-        } else if (libraryEntries.isEmpty()) {
-            releasePlayer();
-            nowPlaying.setText("No chapters generated yet");
-            playerTime.setText("0:00 / 0:00");
-            playerSeek.setProgress(0);
-        }
-    }
-
-    private void updateLibraryStatus() {
-        if (narrationText.trim().isEmpty()) {
-            libraryStatus.setText(libraryEntries.size() + " audio files in the Chapter Library");
+    private void loadAudioForChapter(int requestedIndex, boolean autoPlay) {
+        if (chapters.isEmpty()) return;
+        int index = clampChapter(requestedIndex);
+        Chapter chapter = chapters.get(index);
+        if (chapter.audio.isEmpty()) {
+            Toast.makeText(this, "No audio is included for this section.", Toast.LENGTH_LONG).show();
             return;
         }
-        List<NarrationDocument.Section> expected = NarrationDocument.parse(narrationText);
-        Set<String> existing = new HashSet<>();
-        for (ChapterAudioStore.Entry entry : libraryEntries) existing.add(entry.displayName);
-        int complete = 0;
-        for (NarrationDocument.Section section : expected) {
-            if (existing.contains(ChapterAudioStore.fileNameFor(section))) complete++;
-        }
-        libraryStatus.setText(complete + " of " + expected.size()
-                + " book sections complete • " + libraryEntries.size() + " audio files stored");
-    }
 
-    private void loadChapter(int index, boolean autoplay) {
-        if (index < 0 || index >= libraryEntries.size()) return;
-        saveCurrentPlaybackPosition();
+        saveCurrentAudioPosition();
         releasePlayer();
-        currentIndex = index;
-        ChapterAudioStore.Entry entry = libraryEntries.get(index);
-        nowPlaying.setText("Loading: " + entry.title);
-        playerTime.setText("0:00 / " + formatTime(entry.durationMs));
+        currentAudioIndex = index;
+        currentChapterIndex = index;
+        preferences.edit().putInt(PREF_LAST_CHAPTER, index).apply();
+        suppressChapterSpinner = true;
+        listenChapterSpinner.setSelection(index);
+        suppressChapterSpinner = false;
+        nowPlaying.setText("Loading: " + chapter.title);
+        playerTime.setText("0:00 / 0:00");
         playerSeek.setProgress(0);
-        playPauseButton.setText("Play");
-        setPlayerButtons(false);
-        chapterAdapter.notifyDataSetChanged();
+        setPlayerControlsEnabled(false);
 
-        mediaPlayer = new MediaPlayer();
         try {
-            mediaPlayer.setDataSource(this, entry.uri);
+            AssetFileDescriptor descriptor = getAssets().openFd("audio/" + chapter.audio);
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .build());
+            mediaPlayer.setDataSource(
+                    descriptor.getFileDescriptor(),
+                    descriptor.getStartOffset(),
+                    descriptor.getLength());
+            descriptor.close();
+
             mediaPlayer.setOnPreparedListener(player -> {
                 playerPrepared = true;
                 int duration = player.getDuration();
-                int savedPosition = getSavedPlaybackPosition(entry);
-                if (savedPosition > 0 && savedPosition < duration - 10000) {
-                    player.seekTo(savedPosition);
-                } else {
-                    clearPlaybackPosition(entry);
-                }
                 playerSeek.setMax(Math.max(duration, 1));
-                playerSeek.setProgress(Math.max(savedPosition, 0));
-                playerTime.setText(formatTime(Math.max(savedPosition, 0)) + " / " + formatTime(duration));
-                nowPlaying.setText(entry.title);
-                setPlayerButtons(true);
-                if (autoplay) {
+                int savedPosition = preferences.getInt(PREF_AUDIO_POSITION_PREFIX + chapter.id, 0);
+                if (savedPosition > 0 && savedPosition < duration - 3000) player.seekTo(savedPosition);
+                nowPlaying.setText(chapter.title);
+                playerTime.setText(formatTime(player.getCurrentPosition()) + " / " + formatTime(duration));
+                applyPlaybackSpeed();
+                setPlayerControlsEnabled(true);
+                if (autoPlay) {
                     player.start();
                     playPauseButton.setText("Pause");
+                } else {
+                    playPauseButton.setText("Play");
                 }
-                chapterAdapter.notifyDataSetChanged();
+                if (libraryAdapter != null) libraryAdapter.notifyDataSetChanged();
             });
+
             mediaPlayer.setOnCompletionListener(player -> {
-                clearPlaybackPosition(entry);
+                preferences.edit().putInt(PREF_AUDIO_POSITION_PREFIX + chapter.id, 0).apply();
                 playPauseButton.setText("Play");
-                chapterAdapter.notifyDataSetChanged();
-                if (currentIndex + 1 < libraryEntries.size()) loadChapter(currentIndex + 1, true);
-                else {
-                    player.seekTo(0);
-                    playerSeek.setProgress(0);
-                    playerTime.setText("0:00 / " + formatTime(player.getDuration()));
-                }
+                playNextAudio();
             });
+
             mediaPlayer.setOnErrorListener((player, what, extra) -> {
                 playerPrepared = false;
-                nowPlaying.setText("This chapter could not be played. Refresh the library and try again.");
-                setPlayerButtons(false);
+                nowPlaying.setText("This chapter audio could not be played.");
+                setPlayerControlsEnabled(false);
                 return true;
             });
             mediaPlayer.prepareAsync();
         } catch (Exception exception) {
             releasePlayer();
-            nowPlaying.setText("Could not load the chapter: " + exception.getMessage());
+            nowPlaying.setText("Audio unavailable: " + chapter.title);
+            Toast.makeText(this, "The embedded audio could not be opened.", Toast.LENGTH_LONG).show();
         }
     }
 
     private void togglePlayback() {
-        if (currentIndex < 0 && !libraryEntries.isEmpty()) {
-            loadChapter(0, true);
+        if (currentAudioIndex < 0) {
+            loadAudioForChapter(currentChapterIndex, true);
             return;
         }
         if (mediaPlayer == null || !playerPrepared) return;
@@ -650,7 +465,7 @@ public class MainActivity extends Activity {
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.pause();
                 playPauseButton.setText("Play");
-                saveCurrentPlaybackPosition();
+                saveCurrentAudioPosition();
             } else {
                 mediaPlayer.start();
                 playPauseButton.setText("Pause");
@@ -658,66 +473,161 @@ public class MainActivity extends Activity {
         } catch (IllegalStateException ignored) {}
     }
 
+    private void playPreviousAudio() {
+        int target = findAudioChapter(currentAudioIndex < 0 ? currentChapterIndex - 1 : currentAudioIndex - 1, -1);
+        if (target >= 0) loadAudioForChapter(target, true);
+    }
+
+    private void playNextAudio() {
+        int target = findAudioChapter(currentAudioIndex < 0 ? currentChapterIndex + 1 : currentAudioIndex + 1, 1);
+        if (target >= 0) loadAudioForChapter(target, true);
+        else {
+            playPauseButton.setText("Play");
+            Toast.makeText(this, "You have reached the end of the audiobook.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private int findAudioChapter(int start, int direction) {
+        int index = start;
+        while (index >= 0 && index < chapters.size()) {
+            if (!chapters.get(index).audio.isEmpty()) return index;
+            index += direction;
+        }
+        return -1;
+    }
+
     private void stopPlayback() {
-        if (mediaPlayer == null || !playerPrepared || currentIndex < 0) return;
+        if (mediaPlayer == null || !playerPrepared || currentAudioIndex < 0) return;
         try {
             if (mediaPlayer.isPlaying()) mediaPlayer.pause();
             mediaPlayer.seekTo(0);
-            clearPlaybackPosition(libraryEntries.get(currentIndex));
             playerSeek.setProgress(0);
             playerTime.setText("0:00 / " + formatTime(mediaPlayer.getDuration()));
+            preferences.edit().putInt(
+                    PREF_AUDIO_POSITION_PREFIX + chapters.get(currentAudioIndex).id,
+                    0).apply();
             playPauseButton.setText("Play");
-            chapterAdapter.notifyDataSetChanged();
         } catch (IllegalStateException ignored) {}
     }
 
-    private void playPrevious() {
-        if (mediaPlayer != null && playerPrepared) {
-            try {
-                if (mediaPlayer.getCurrentPosition() > 5000) {
-                    mediaPlayer.seekTo(0);
-                    return;
-                }
-            } catch (IllegalStateException ignored) {}
-        }
-        if (currentIndex > 0) loadChapter(currentIndex - 1, true);
-        else if (!libraryEntries.isEmpty()) loadChapter(0, true);
-    }
-
-    private void playNext() {
-        if (libraryEntries.isEmpty()) return;
-        if (currentIndex < 0) loadChapter(0, true);
-        else if (currentIndex + 1 < libraryEntries.size()) loadChapter(currentIndex + 1, true);
-    }
-
-    private void saveCurrentPlaybackPosition() {
-        if (mediaPlayer == null || !playerPrepared || currentIndex < 0 || currentIndex >= libraryEntries.size()) return;
+    private void applyPlaybackSpeed() {
+        if (mediaPlayer == null || !playerPrepared) return;
+        int position = speedSpinner.getSelectedItemPosition();
+        if (position < 0 || position >= SPEED_VALUES.length) position = 1;
         try {
-            savePlaybackPosition(
-                    libraryEntries.get(currentIndex),
-                    mediaPlayer.getCurrentPosition(),
-                    mediaPlayer.getDuration());
-        } catch (IllegalStateException ignored) {}
+            PlaybackParams params = mediaPlayer.getPlaybackParams();
+            params.setSpeed(SPEED_VALUES[position]);
+            params.setPitch(1f);
+            mediaPlayer.setPlaybackParams(params);
+        } catch (Exception ignored) {}
     }
 
-    private void savePlaybackPosition(ChapterAudioStore.Entry entry, int position, int duration) {
-        if (duration > 0 && position >= duration - 10000) {
-            clearPlaybackPosition(entry);
+    private void setSleepTimer(int spinnerPosition) {
+        handler.removeCallbacks(sleepRunnable);
+        int position = spinnerPosition;
+        if (position < 0 || position >= SLEEP_MINUTES.length) position = 0;
+        int minutes = SLEEP_MINUTES[position];
+        if (minutes <= 0) {
+            sleepDeadline = 0L;
+            sleepStatus.setText("Sleep timer off");
             return;
         }
-        preferences.edit().putInt(playbackKey(entry), Math.max(position, 0)).apply();
+        sleepDeadline = System.currentTimeMillis() + minutes * 60_000L;
+        handler.postDelayed(sleepRunnable, minutes * 60_000L);
+        sleepStatus.setText("Sleep timer: " + minutes + " minutes");
     }
 
-    private int getSavedPlaybackPosition(ChapterAudioStore.Entry entry) {
-        return preferences.getInt(playbackKey(entry), 0);
+    private void setPlayerControlsEnabled(boolean enabled) {
+        playPauseButton.setEnabled(enabled);
+        playerStopButton.setEnabled(enabled);
+        playerPreviousButton.setEnabled(enabled && findAudioChapter(currentAudioIndex - 1, -1) >= 0);
+        playerNextButton.setEnabled(enabled && findAudioChapter(currentAudioIndex + 1, 1) >= 0);
     }
 
-    private void clearPlaybackPosition(ChapterAudioStore.Entry entry) {
-        preferences.edit().remove(playbackKey(entry)).apply();
+    private void saveCurrentAudioPosition() {
+        if (mediaPlayer == null || !playerPrepared) return;
+        try { saveAudioPosition(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()); }
+        catch (IllegalStateException ignored) {}
     }
 
-    private String playbackKey(ChapterAudioStore.Entry entry) {
-        return PREF_PLAYBACK_PREFIX + Integer.toHexString(entry.displayName.hashCode());
+    private void saveAudioPosition(int position, int duration) {
+        if (currentAudioIndex < 0 || currentAudioIndex >= chapters.size()) return;
+        int value = position;
+        if (duration > 0 && position >= duration - 3000) value = 0;
+        preferences.edit().putInt(
+                PREF_AUDIO_POSITION_PREFIX + chapters.get(currentAudioIndex).id,
+                Math.max(value, 0)).apply();
+    }
+
+    private void changeTextSize(float change) {
+        readerTextSize = Math.max(14f, Math.min(30f, readerTextSize + change));
+        readBody.setTextSize(readerTextSize);
+        preferences.edit().putFloat(PREF_TEXT_SIZE, readerTextSize).apply();
+    }
+
+    private void applyTheme() {
+        int background = darkMode ? Color.rgb(18, 20, 24) : Color.rgb(247, 244, 236);
+        int panel = darkMode ? Color.rgb(30, 34, 41) : Color.WHITE;
+        int primary = darkMode ? Color.rgb(240, 198, 102) : Color.rgb(7, 31, 61);
+        int text = darkMode ? Color.rgb(236, 239, 244) : Color.rgb(32, 32, 32);
+        int secondary = darkMode ? Color.rgb(180, 185, 194) : Color.rgb(85, 85, 85);
+
+        root.setBackgroundColor(background);
+        headerPanel.setBackgroundColor(background);
+        findViewById(R.id.libraryTab).setBackgroundColor(background);
+        findViewById(R.id.readTab).setBackgroundColor(background);
+        findViewById(R.id.listenTab).setBackgroundColor(background);
+        libraryList.setBackgroundColor(panel);
+        readScroll.setBackgroundColor(panel);
+
+        headerTitle.setTextColor(primary);
+        headerSubtitle.setTextColor(darkMode ? Color.rgb(240, 198, 102) : Color.rgb(216, 170, 60));
+        bookTitle.setTextColor(primary);
+        bookAuthor.setTextColor(secondary);
+        libraryStatus.setTextColor(secondary);
+        readTitle.setTextColor(primary);
+        readBody.setTextColor(text);
+        nowPlaying.setTextColor(primary);
+        playerTime.setTextColor(secondary);
+        sleepStatus.setTextColor(secondary);
+        ((TextView)findViewById(R.id.audioDisclosure)).setTextColor(secondary);
+        darkModeButton.setText(darkMode ? "Light mode" : "Dark mode");
+
+        Window window = getWindow();
+        window.setStatusBarColor(darkMode ? Color.rgb(7, 11, 17) : Color.rgb(7, 31, 61));
+        window.setNavigationBarColor(darkMode ? Color.rgb(7, 11, 17) : Color.rgb(7, 31, 61));
+        if (libraryAdapter != null) libraryAdapter.notifyDataSetChanged();
+    }
+
+    private int clampChapter(int index) {
+        if (chapters.isEmpty()) return 0;
+        return Math.max(0, Math.min(chapters.size() - 1, index));
+    }
+
+    private String readAssetText(String path) throws Exception {
+        try (InputStream input = getAssets().open(path);
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int count;
+            while ((count = input.read(buffer)) > 0) output.write(buffer, 0, count);
+            return output.toString(StandardCharsets.UTF_8.name());
+        }
+    }
+
+    private String formatTime(int milliseconds) {
+        int totalSeconds = Math.max(milliseconds, 0) / 1000;
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+        if (hours > 0) return String.format(Locale.UK, "%d:%02d:%02d", hours, minutes, seconds);
+        return String.format(Locale.UK, "%d:%02d", minutes, seconds);
+    }
+
+    private String formatTimeLong(long milliseconds) {
+        long totalSeconds = Math.max(milliseconds, 0L) / 1000L;
+        long minutes = totalSeconds / 60L;
+        long seconds = totalSeconds % 60L;
+        return String.format(Locale.UK, "%d:%02d remaining", minutes, seconds);
     }
 
     private void releasePlayer() {
@@ -727,81 +637,77 @@ public class MainActivity extends Activity {
             mediaPlayer = null;
         }
         playerPrepared = false;
-        playPauseButton.setText("Play");
+        setPlayerControlsEnabled(false);
     }
 
-    private void setPlayerButtons(boolean enabled) {
-        previousButton.setEnabled(enabled && !libraryEntries.isEmpty());
-        playPauseButton.setEnabled(enabled && !libraryEntries.isEmpty());
-        nextButton.setEnabled(enabled && !libraryEntries.isEmpty());
-        playerStopButton.setEnabled(enabled && currentIndex >= 0);
+    @Override protected void onStop() {
+        saveCurrentAudioPosition();
+        if (!chapters.isEmpty()) {
+            preferences.edit().putInt(
+                    PREF_READ_POSITION_PREFIX + chapters.get(currentChapterIndex).id,
+                    readScroll.getScrollY()).apply();
+        }
+        super.onStop();
     }
 
-    private void setGenerationBusy(boolean busy) {
-        runOnUiThread(() -> {
-            selectNarrationButton.setEnabled(!busy);
-            saveKeyButton.setEnabled(!busy);
-            forgetKeyButton.setEnabled(!busy);
-            sampleButton.setEnabled(!busy);
-            chapterOneButton.setEnabled(!busy);
-            fullBookButton.setEnabled(!busy);
-            stopGenerationButton.setEnabled(busy);
-        });
-    }
-
-    private void updateGenerationStatus(String text) {
-        runOnUiThread(() -> generationStatus.setText(text));
-    }
-
-    private void updateGenerationProgress(int value) {
-        runOnUiThread(() -> generationProgress.setProgress(value));
-    }
-
-    private String formatTime(long milliseconds) {
-        long totalSeconds = Math.max(milliseconds, 0L) / 1000L;
-        long hours = totalSeconds / 3600L;
-        long minutes = (totalSeconds % 3600L) / 60L;
-        long seconds = totalSeconds % 60L;
-        if (hours > 0) return String.format(Locale.UK, "%d:%02d:%02d", hours, minutes, seconds);
-        return String.format(Locale.UK, "%d:%02d", minutes, seconds);
-    }
-
-    @Override protected void onPause() {
-        saveCurrentPlaybackPosition();
-        super.onPause();
+    @Override public void onBackPressed() {
+        if (tabHost.getCurrentTab() != 0) {
+            tabHost.setCurrentTab(0);
+            return;
+        }
+        super.onBackPressed();
     }
 
     @Override protected void onDestroy() {
-        playerHandler.removeCallbacks(playerProgressUpdater);
-        saveCurrentPlaybackPosition();
+        saveCurrentAudioPosition();
+        handler.removeCallbacks(playerProgressUpdater);
+        handler.removeCallbacks(sleepRunnable);
         releasePlayer();
-        executor.shutdownNow();
         super.onDestroy();
     }
 
-    private final class ChapterAdapter extends BaseAdapter {
-        private final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-
-        @Override public int getCount() { return libraryEntries.size(); }
-        @Override public ChapterAudioStore.Entry getItem(int position) { return libraryEntries.get(position); }
+    private class ChapterAdapter extends BaseAdapter {
+        @Override public int getCount() { return chapters.size(); }
+        @Override public Object getItem(int position) { return chapters.get(position); }
         @Override public long getItemId(int position) { return position; }
 
         @Override public View getView(int position, View convertView, ViewGroup parent) {
-            View row = convertView;
-            if (row == null) row = inflater.inflate(android.R.layout.simple_list_item_2, parent, false);
-            TextView title = row.findViewById(android.R.id.text1);
-            TextView detail = row.findViewById(android.R.id.text2);
-            ChapterAudioStore.Entry entry = getItem(position);
-            String prefix = position == currentIndex ? "▶  " : "";
-            title.setText(prefix + entry.title);
-            title.setTextColor(getResources().getColor(R.color.navy));
-            int savedPosition = getSavedPlaybackPosition(entry);
-            String state = savedPosition > 0
-                    ? "Continue at " + formatTime(savedPosition)
-                    : "Ready";
-            detail.setText(formatTime(entry.durationMs) + "  •  " + state);
-            row.setActivated(position == currentIndex);
-            return row;
+            View view = convertView;
+            if (view == null) {
+                view = LayoutInflater.from(MainActivity.this)
+                        .inflate(android.R.layout.simple_list_item_2, parent, false);
+            }
+            Chapter chapter = chapters.get(position);
+            TextView title = view.findViewById(android.R.id.text1);
+            TextView detail = view.findViewById(android.R.id.text2);
+            title.setText(chapter.title);
+            int savedAudio = preferences.getInt(PREF_AUDIO_POSITION_PREFIX + chapter.id, 0);
+            String state = chapter.audio.isEmpty() ? "Read offline" : "Read and listen offline";
+            if (savedAudio > 0) state += " • listening position saved";
+            detail.setText(state);
+
+            int primary = darkMode ? Color.rgb(236, 239, 244) : Color.rgb(7, 31, 61);
+            int secondary = darkMode ? Color.rgb(180, 185, 194) : Color.rgb(90, 90, 90);
+            int selected = darkMode ? Color.rgb(49, 57, 69) : Color.rgb(240, 230, 205);
+            int normal = darkMode ? Color.rgb(30, 34, 41) : Color.WHITE;
+            title.setTextColor(primary);
+            detail.setTextColor(secondary);
+            view.setBackgroundColor(position == currentChapterIndex ? selected : normal);
+            return view;
+        }
+    }
+
+    private static class Chapter {
+        final String id;
+        final String title;
+        final String html;
+        final String audio;
+
+        Chapter(String id, String title, String html, String audio) {
+            this.id = id;
+            this.title = title;
+            this.html = html;
+            this.audio = audio;
         }
     }
 }
