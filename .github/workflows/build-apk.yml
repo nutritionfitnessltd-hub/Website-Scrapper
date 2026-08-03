@@ -60,10 +60,12 @@ jobs:
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           BUILD_TOOLS_DIR=$(dirname "$APKSIGNER")
+          LIBCPP=$(find "$ANDROID_HOME" -type f -name libc++.so | head -1)
           mkdir -p signing-tools/lib
           cp "$BUILD_TOOLS_DIR/apksigner" signing-tools/
           cp "$BUILD_TOOLS_DIR/zipalign" signing-tools/
           cp "$BUILD_TOOLS_DIR/lib/apksigner.jar" signing-tools/lib/
+          cp "$LIBCPP" signing-tools/libc++.so
           chmod +x signing-tools/apksigner signing-tools/zipalign
           tar -czf android-signing-tools.tar.gz signing-tools
 
