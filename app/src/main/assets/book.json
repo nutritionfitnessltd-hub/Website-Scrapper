@@ -1,12 +1,12 @@
 {
   "title": "The Lodge Marketing Machine",
-  "author": "W.Bro Calam",
+  "author": "W.Bro James Calam",
   "subtitle": "Reader Edition",
   "chapters": [
     {
-      "id": "preparing_reader_edition",
-      "title": "Preparing Reader Edition",
-      "html": "<h2>The Lodge Marketing Machine</h2><p>The complete publication text and chapter audio will be inserted into the final signed Reader Edition package.</p>",
+      "id": "reader_template",
+      "title": "Reader Edition",
+      "html": "<h2>The Lodge Marketing Machine</h2><p>Offline reader and audiobook template. The publication text and chapter audio are inserted before final signing.</p>",
       "audio": ""
     }
   ]
