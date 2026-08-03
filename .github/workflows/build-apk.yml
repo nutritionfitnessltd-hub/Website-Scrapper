@@ -52,15 +52,16 @@ jobs:
       - name: Verify base APK signature
         shell: bash
         run: |
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print -quit)
           "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk
 
       - name: Package Android signing tools
         shell: bash
         run: |
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print -quit)
           BUILD_TOOLS_DIR=$(dirname "$APKSIGNER")
-          LIBCPP=$(find "$ANDROID_HOME" -type f -name libc++.so | head -1)
+          LIBCPP=$(find "$ANDROID_HOME" -type f -name libc++.so -print -quit)
+          test -n "$LIBCPP"
           mkdir -p signing-tools/lib
           cp "$BUILD_TOOLS_DIR/apksigner" signing-tools/
           cp "$BUILD_TOOLS_DIR/zipalign" signing-tools/
