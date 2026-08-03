@@ -5,34 +5,38 @@
     android:background="@color/cream">
 
     <LinearLayout
+        android:id="@+id/root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/headerPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="18dp"
-            android:paddingEnd="18dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="10dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="8dp">
 
             <TextView
+                android:id="@+id/headerTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="THE LODGE MARKETING MACHINE"
                 android:textColor="@color/navy"
                 android:textStyle="bold"
-                android:textSize="23sp"
+                android:textSize="21sp"
                 android:gravity="center" />
 
             <TextView
+                android:id="@+id/headerSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="British Audiobook Studio"
+                android:text="Reader Edition"
                 android:textColor="@color/gold"
-                android:textSize="17sp"
+                android:textSize="16sp"
                 android:gravity="center" />
         </LinearLayout>
 
@@ -47,210 +51,203 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <ScrollView
-                android:id="@+id/generateTab"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fillViewport="true">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="NARRATION SOURCE"
-                        android:textColor="@color/navy"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <Button
-                        android:id="@+id/selectButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Select Narration Master File"
-                        android:layout_marginTop="8dp" />
-
-                    <TextView
-                        android:id="@+id/fileStatus"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Select the Narration Master file"
-                        android:textColor="#555555"
-                        android:paddingBottom="16dp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="OPENAI ACCESS"
-                        android:textColor="@color/navy"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <EditText
-                        android:id="@+id/apiKey"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="OpenAI API key"
-                        android:inputType="textPassword"
-                        android:singleLine="true" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <Button
-                            android:id="@+id/saveKeyButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Save Key Securely"
-                            android:layout_marginEnd="5dp" />
-
-                        <Button
-                            android:id="@+id/forgetKeyButton"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Forget Key"
-                            android:layout_marginStart="5dp" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="BRITISH NARRATION VOICE"
-                        android:textColor="@color/navy"
-                        android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:paddingTop="16dp" />
-
-                    <Spinner
-                        android:id="@+id/voiceSpinner"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Cedar is recommended for the complete book. Marin is clearer and more conversational. Onyx is deeper and more formal."
-                        android:textSize="12sp"
-                        android:textColor="#555555"
-                        android:paddingTop="6dp"
-                        android:paddingBottom="12dp" />
-
-                    <Button
-                        android:id="@+id/sampleButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Generate British Voice Sample" />
-
-                    <Button
-                        android:id="@+id/chapterButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Generate or Replace Chapter 1" />
-
-                    <Button
-                        android:id="@+id/fullButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Generate Remaining Book Chapters" />
-
-                    <com.lodgemarketingmachine.narrator.ExportPackageButton
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp" />
-
-                    <Button
-                        android:id="@+id/stopButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Stop Safely After Current Request" />
-
-                    <ProgressBar
-                        android:id="@+id/progress"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:max="100"
-                        android:layout_marginTop="16dp" />
-
-                    <TextView
-                        android:id="@+id/status"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Ready"
-                        android:textColor="@color/text"
-                        android:textSize="15sp"
-                        android:paddingTop="12dp"
-                        android:paddingBottom="16dp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Each chapter is generated in safe-sized parts and then assembled into one finished M4A chapter file. Finished chapters are stored in Downloads/LodgeMarketingMachineAudio and appear automatically in the Chapter Library. The export button creates one ZIP containing every finished chapter for the final Reader Edition APK."
-                        android:textSize="12sp"
-                        android:textColor="#555555" />
-                </LinearLayout>
-            </ScrollView>
-
             <LinearLayout
                 android:id="@+id/libraryTab"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="14dp">
+
+                <ImageView
+                    android:id="@+id/coverImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerInside"
+                    android:contentDescription="Book cover" />
+
+                <TextView
+                    android:id="@+id/bookTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="The Lodge Marketing Machine"
+                    android:textColor="@color/navy"
+                    android:textStyle="bold"
+                    android:textSize="20sp"
+                    android:gravity="center"
+                    android:paddingTop="8dp" />
+
+                <TextView
+                    android:id="@+id/bookAuthor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="W.Bro Calam"
+                    android:textColor="#555555"
+                    android:textSize="14sp"
+                    android:gravity="center"
+                    android:paddingBottom="8dp" />
+
+                <Button
+                    android:id="@+id/continueButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Continue Reading" />
+
+                <TextView
+                    android:id="@+id/libraryStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Choose a section to read or listen"
+                    android:textColor="#555555"
+                    android:textSize="13sp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp" />
+
+                <ListView
+                    android:id="@+id/libraryList"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:divider="#D8D2C5"
+                    android:dividerHeight="1dp"
+                    android:background="#FFFFFF" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/readTab"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <TextView
+                    android:id="@+id/readTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Chapter"
+                    android:textColor="@color/navy"
+                    android:textStyle="bold"
+                    android:textSize="20sp"
+                    android:gravity="center"
+                    android:paddingBottom="8dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/libraryStatus"
+                    <Button
+                        android:id="@+id/fontDownButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Loading Chapter Library…"
-                        android:textColor="@color/navy"
-                        android:textStyle="bold"
-                        android:textSize="14sp" />
+                        android:text="A−"
+                        android:layout_marginEnd="4dp" />
 
                     <Button
-                        android:id="@+id/refreshLibraryButton"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/fontUpButton"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Refresh" />
+                        android:layout_weight="1"
+                        android:text="A+"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp" />
+
+                    <Button
+                        android:id="@+id/darkModeButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1.4"
+                        android:text="Dark mode"
+                        android:layout_marginStart="4dp" />
                 </LinearLayout>
 
-                <ListView
-                    android:id="@+id/chapterList"
+                <ScrollView
+                    android:id="@+id/readScroll"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:choiceMode="singleChoice"
-                    android:divider="#D8D2C5"
-                    android:dividerHeight="1dp"
+                    android:fillViewport="true"
                     android:background="#FFFFFF"
+                    android:padding="16dp"
                     android:layout_marginTop="8dp"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/readBody"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#202020"
+                        android:textSize="18sp"
+                        android:lineSpacingExtra="5dp"
+                        android:textIsSelectable="true" />
+                </ScrollView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/readPreviousButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Previous"
+                        android:layout_marginEnd="4dp" />
+
+                    <Button
+                        android:id="@+id/listenThisButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1.3"
+                        android:text="Listen"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp" />
+
+                    <Button
+                        android:id="@+id/readNextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Next"
+                        android:layout_marginStart="4dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/listenTab"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="CHAPTER AUDIO"
+                    android:textColor="@color/navy"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:gravity="center" />
+
+                <Spinner
+                    android:id="@+id/listenChapterSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp" />
 
                 <TextView
                     android:id="@+id/nowPlaying"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Select a chapter to begin"
+                    android:text="Select a chapter"
                     android:textColor="@color/navy"
                     android:textStyle="bold"
-                    android:textSize="16sp"
+                    android:textSize="18sp"
                     android:gravity="center"
-                    android:paddingBottom="6dp" />
+                    android:paddingTop="24dp"
+                    android:paddingBottom="12dp" />
 
                 <SeekBar
                     android:id="@+id/playerSeek"
@@ -264,9 +261,9 @@
                     android:layout_height="wrap_content"
                     android:text="0:00 / 0:00"
                     android:textColor="#555555"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:gravity="center"
-                    android:paddingBottom="8dp" />
+                    android:paddingBottom="12dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -274,7 +271,7 @@
                     android:orientation="horizontal">
 
                     <Button
-                        android:id="@+id/previousButton"
+                        android:id="@+id/playerPreviousButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -291,7 +288,7 @@
                         android:layout_marginEnd="4dp" />
 
                     <Button
-                        android:id="@+id/nextButton"
+                        android:id="@+id/playerNextButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -305,14 +302,77 @@
                     android:layout_height="wrap_content"
                     android:text="Stop and Return to Start" />
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Your listening position is remembered separately for every chapter. Playback continues automatically into the next chapter."
-                    android:textSize="12sp"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginEnd="6dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Playback speed"
+                            android:textStyle="bold"
+                            android:textColor="@color/navy" />
+
+                        <Spinner
+                            android:id="@+id/speedSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="6dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Sleep timer"
+                            android:textStyle="bold"
+                            android:textColor="@color/navy" />
+
+                        <Spinner
+                            android:id="@+id/sleepSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/sleepStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Sleep timer off"
                     android:textColor="#555555"
+                    android:textSize="13sp"
                     android:gravity="center"
-                    android:paddingTop="6dp" />
+                    android:paddingTop="12dp" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/audioDisclosure"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="The narration is AI-generated. The complete audiobook is included in this Reader Edition and plays offline."
+                    android:textColor="#666666"
+                    android:textSize="12sp"
+                    android:gravity="center"
+                    android:paddingTop="12dp" />
             </LinearLayout>
         </FrameLayout>
     </LinearLayout>
