@@ -34,7 +34,7 @@
                 android:id="@+id/headerSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Reader Edition"
+                android:text="Reader and Audiobook Player"
                 android:textColor="@color/gold"
                 android:textSize="16sp"
                 android:gravity="center" />
@@ -58,47 +58,75 @@
                 android:orientation="vertical"
                 android:padding="14dp">
 
-                <ImageView
-                    android:id="@+id/coverImage"
-                    android:layout_width="match_parent"
-                    android:layout_height="220dp"
-                    android:adjustViewBounds="true"
-                    android:scaleType="centerInside"
-                    android:contentDescription="Book cover" />
-
                 <TextView
-                    android:id="@+id/bookTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="The Lodge Marketing Machine"
+                    android:text="BOOK AND AUDIO LOCATION"
                     android:textColor="@color/navy"
                     android:textStyle="bold"
-                    android:textSize="20sp"
-                    android:gravity="center"
-                    android:paddingTop="8dp" />
-
-                <TextView
-                    android:id="@+id/bookAuthor"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="W.Bro Calam"
-                    android:textColor="#555555"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:gravity="center"
                     android:paddingBottom="8dp" />
 
                 <Button
-                    android:id="@+id/continueButton"
+                    android:id="@+id/chooseBookButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Continue Reading" />
+                    android:text="Choose Book File" />
+
+                <TextView
+                    android:id="@+id/bookFileStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Select Narration_Master.md"
+                    android:textColor="#555555"
+                    android:textSize="13sp"
+                    android:paddingBottom="8dp" />
+
+                <Button
+                    android:id="@+id/chooseAudioFolderButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Choose Audio Folder" />
+
+                <TextView
+                    android:id="@+id/audioFolderStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Select the folder containing the M4A, AAC or MP3 chapter files"
+                    android:textColor="#555555"
+                    android:textSize="13sp"
+                    android:paddingBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/refreshAudioButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Refresh Files"
+                        android:layout_marginEnd="4dp" />
+
+                    <Button
+                        android:id="@+id/continueButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1.4"
+                        android:text="Continue Reading"
+                        android:layout_marginStart="4dp" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/libraryStatus"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Choose a section to read or listen"
-                    android:textColor="#555555"
+                    android:text="Choose the book file and audio folder"
+                    android:textColor="@color/navy"
+                    android:textStyle="bold"
                     android:textSize="13sp"
                     android:paddingTop="8dp"
                     android:paddingBottom="8dp" />
@@ -124,7 +152,7 @@
                     android:id="@+id/readTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Chapter"
+                    android:text="Select a section"
                     android:textColor="@color/navy"
                     android:textStyle="bold"
                     android:textSize="20sp"
@@ -177,6 +205,7 @@
                         android:id="@+id/readBody"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:text="Select Narration_Master.md from the Library tab."
                         android:textColor="#202020"
                         android:textSize="18sp"
                         android:lineSpacingExtra="5dp"
@@ -241,7 +270,7 @@
                     android:id="@+id/nowPlaying"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Select a chapter"
+                    android:text="Choose the audio folder from the Library tab"
                     android:textColor="@color/navy"
                     android:textStyle="bold"
                     android:textSize="18sp"
@@ -365,10 +394,9 @@
                     android:layout_weight="1" />
 
                 <TextView
-                    android:id="@+id/audioDisclosure"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="The narration is AI-generated. The complete audiobook is included in this Reader Edition and plays offline."
+                    android:text="The narration is AI-generated. The app remembers the selected book file, audio folder, reading position and listening position."
                     android:textColor="#666666"
                     android:textSize="12sp"
                     android:gravity="center"
