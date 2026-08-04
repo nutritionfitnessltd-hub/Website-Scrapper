@@ -2,6 +2,9 @@ name: Build Selectable Media Reader
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - external-audio-reader
   pull_request:
     branches:
       - main
