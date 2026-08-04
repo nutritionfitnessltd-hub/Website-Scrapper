@@ -1,7 +1,10 @@
-name: Build Split Reader Installer
+name: Build Selectable Media Reader
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - external-audio-reader
   pull_request:
     branches:
       - main
@@ -38,7 +41,7 @@ jobs:
               -keyalg RSA \
               -keysize 2048 \
               -validity 10000 \
-              -dname "CN=LMM Reader Installer, OU=Publishing, O=The Lodge Marketing Machine, L=Leeds, ST=West Yorkshire, C=GB"
+              -dname "CN=Lodge Book Reader, OU=Publishing, O=The Lodge Marketing Machine, L=Leeds, ST=West Yorkshire, C=GB"
           fi
 
       - name: Set up Gradle
@@ -46,7 +49,7 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build installer APK
+      - name: Build APK
         run: gradle clean assembleDebug
 
       - name: Verify APK signature
@@ -55,9 +58,9 @@ jobs:
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print -quit)
           "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload installer APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: LMM-Reader-Split-Installer
+          name: LodgeBookReader-Choose-Files
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
