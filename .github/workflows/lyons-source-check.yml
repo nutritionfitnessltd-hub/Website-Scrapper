@@ -1,0 +1,89 @@
+name: Lyons Interiors source and public-site check
+on:
+  push:
+    branches: [lyons-interiors]
+    paths: [.github/workflows/lyons-source-check.yml]
+permissions:
+  contents: write
+concurrency:
+  group: lyons-interiors-source-check
+  cancel-in-progress: false
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: lyons-interiors
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore readable original source, retaining integrity-checked archive
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { brotliDecompressSync } from 'node:zlib';
+          import { createHash } from 'node:crypto';
+          const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+          const encoded = manifest.parts.map(file => fs.readFileSync(file, 'utf8')).join('');
+          const raw = brotliDecompressSync(Buffer.from(encoded, 'base64'));
+          if (createHash('sha256').update(raw).digest('hex') !== manifest.sha256) throw new Error('Snapshot integrity failed');
+          const sources = JSON.parse(raw.toString('utf8'));
+          for (const [name, content] of Object.entries(sources)) {
+            if (!manifest.files.includes(name) || typeof content !== 'string' || path.isAbsolute(name) || name.split(/[\\/]/).includes('..')) throw new Error('Unsafe source entry');
+            const target = path.join('site', name);
+            if (fs.existsSync(target)) throw new Error('Refusing to overwrite editable source: ' + target);
+            fs.mkdirSync(path.dirname(target), { recursive: true });
+            fs.writeFileSync(target, content);
+          }
+          fs.writeFileSync('build.mjs', `import fs from 'node:fs';\nimport { spawnSync } from 'node:child_process';\n// Editable source lives in site/. No packages or database required.\nfor (const script of ['build.mjs', 'check.mjs']) {\n  const result = spawnSync(process.execPath, [script], { cwd: 'site', stdio: 'inherit', env: process.env });\n  if (result.error) throw result.error;\n  if (result.status !== 0) process.exit(result.status || 1);\n}\nfs.rmSync('public', { recursive: true, force: true });\nfs.cpSync('site/public', 'public', { recursive: true });\n`);
+          fs.writeFileSync('package.json', JSON.stringify({ name: 'lyons-interiors', version: '1.0.0', private: true, type: 'module', scripts: { build: 'node build.mjs', check: 'cd site && node check.mjs' }, engines: { node: '22.x' } }, null, 2) + '\n');
+          fs.appendFileSync('.gitignore', 'site/public/\n');
+          fs.writeFileSync('README.md', '# Lyons Interiors\n\nComplete standalone plastering and interior finishing website.\n\n## Editable source\n\nAll original source is available as normal, readable files in **site/**. Edit site/content.mjs for services, advice articles and business information; site/build.mjs for page templates; site/style.css and site/app.js for presentation and interactions.\n\nRun `npm run build` with Node.js 22. The dependency-free build generates and validates 31 HTML pages in public/. Vercel configuration is included. Set SITE_URL when connecting a custom domain; otherwise Vercel supplies its production hostname.\n\nThis is the separate **lyons-interiors** branch of Website-Scrapper. **Do not merge it into main.** Existing Nutrition.Fitness, Love Stories Events and Castle Grove projects are unchanged. Creating a separate repository was not exposed by the connected GitHub interface.\n\n## Deployment\n\nProduction deployment requested: https://lyons-interiors-nufi2.vercel.app/\n\nInspector: https://vercel.com/nufi2/lyons-interiors/GnDm7AEq2Ej6kSJ693PpLKSryM1E\n\nSee deployment-check.json for the actual public HTTP check results, not a claimed guarantee of availability. The initial Vercel deployment builds the integrity-checked GitHub snapshot at 81fa1a1c8f5006c0000f3d23663c36bccde4239a. Automatic Git push deployment is not configured. The archived source/part files remain for reproducibility; future editing should use site/.\n\n## Enquiries and evidence\n\nThe modal creates a message draft to send by text or WhatsApp. The visitor must press Send in their messaging app. This is not a background form submission or database-backed enquiry system. Supabase is not needed. WhatsApp account availability should be confirmed; text and phone are alternatives. No testimonials, verified rating badge, fixed prices, years of experience, accreditations or project counts are invented. Interior photos are clearly marked as inspiration, not completed Lyons projects. Actual work links to the supplied Instagram profile.\n\nThe business owner should approve the copy and provide authentic project photography, a confirmed Google review link and the desired domain before paid promotion. No Google ranking, conversion rate or independent Lighthouse score is guaranteed. See site/README.md for development notes and site/test-report.json for local browser checks.\n');
+          console.log('All original source restored, hash verified.');
+          NODE
+      - name: Build and audit all generated pages
+        run: npm run build
+      - name: Check the public deployment without authentication
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const origin = 'https://lyons-interiors-nufi2.vercel.app';
+          const paths = ['/', '/advice/', '/advice/plastering-cost-leeds/', '/services/wall-skimming/', '/pricing/', '/contact/', '/sitemap.xml', '/robots.txt', '/app.js', '/style.css'];
+          const results = await Promise.all(paths.map(async path => {
+            try {
+              const response = await fetch(origin + path, { signal: AbortSignal.timeout(20000), redirect: 'follow' });
+              const text = await response.text();
+              const result = { path, status: response.status, finalUrl: response.url, contentType: response.headers.get('content-type') };
+              if (path.endsWith('/')) {
+                result.title = text.match(/<title>([^<]*)<\/title>/i)?.[1] || null;
+                result.canonical = text.match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"/i)?.[1] || null;
+                result.hasLyonsContent = /Lyons Interiors/i.test(text) && /07306|447306160862/.test(text);
+              }
+              return result;
+            } catch (error) { return { path, error: error.message }; }
+          }));
+          const images = ['photo-1600210492486-724fe5c67fb0', 'photo-1600607687939-ce8a6c25118c', 'photo-1616486338812-3dadae4b4ace', 'photo-1748679979638-e02b2df71540', 'photo-1497366754035-f200968a6e72', 'photo-1741559935512-3b018321e35f'];
+          const imageResults = await Promise.all(images.map(async id => {
+            try {
+              const response = await fetch('https://images.unsplash.com/' + id + '?auto=format&fit=crop&w=640&q=75', { signal: AbortSignal.timeout(20000) });
+              await response.arrayBuffer();
+              return { id, status: response.status, contentType: response.headers.get('content-type') };
+            } catch (error) { return { id, error: error.message }; }
+          }));
+          const report = { checkedAt: new Date().toISOString(), origin, publicSiteVerified: results.every(r => r.status === 200 && (!r.path.endsWith('/') || r.hasLyonsContent)), results, images: imageResults, note: 'Public HTTP smoke check only. No private Vercel APIs, authentication bypass, user messages, analytics or conversion claims.' };
+          fs.writeFileSync('deployment-check.json', JSON.stringify(report, null, 2) + '\n');
+          console.log(JSON.stringify(report, null, 2));
+          NODE
+      - name: Save readable code and verification report to Lyons branch only
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site build.mjs package.json README.md .gitignore deployment-check.json
+          git diff --cached --quiet || git commit -m 'Expose editable Lyons source and record public deployment checks'
+          git push origin HEAD:lyons-interiors
