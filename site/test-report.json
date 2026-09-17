@@ -1,0 +1,44 @@
+{
+  "viewports": [
+    {
+      "width": 1440,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 1024,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 768,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 390,
+      "horizontal_overflow": false
+    },
+    {
+      "width": 320,
+      "horizontal_overflow": false
+    }
+  ],
+  "checks": [
+    "Quote modal opens and closes",
+    "Service selection required",
+    "Postcode validation",
+    "Message preview generated",
+    "Correct SMS destination",
+    "No automatic sending",
+    "Keyboard Escape and focus restoration",
+    "12 searchable advice guides",
+    "Empty search state",
+    "Clear search control",
+    "Category filtering",
+    "Search combined with category",
+    "Mobile menu toggle",
+    "Desktop navigation visible without hamburger",
+    "Mobile service, pricing, article, contact and checklist layouts",
+    "Full article readable without JavaScript"
+  ],
+  "console_errors": [],
+  "remote_image_checks": "Not performed: outbound networking unavailable in local runtime."
+}

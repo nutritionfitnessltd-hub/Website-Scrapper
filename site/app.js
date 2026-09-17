@@ -1,0 +1,24 @@
+(()=>{'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const menu=$('.menu-toggle'),nav=$('.nav-links');
+menu?.addEventListener('click',()=>{const open=menu.getAttribute('aria-expanded')!=='true';menu.setAttribute('aria-expanded',String(open));menu.setAttribute('aria-label',open?'Close navigation':'Open navigation');nav.classList.toggle('open',open)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){nav?.classList.remove('open');menu?.setAttribute('aria-expanded','false');menu?.setAttribute('aria-label','Open navigation')}});
+const search=$('#advice-search'),filters=$$('.filter'),cards=$$('.article-card[data-category]');let category='All advice';
+function filterAdvice(){const q=(search?.value||'').trim().toLowerCase();let total=0;cards.forEach(card=>{const visible=(category==='All advice'||card.dataset.category===category)&&card.dataset.search.includes(q);card.hidden=!visible;if(visible)total++});const result=$('#results-count');if(result)result.textContent=`${total} ${total===1?'guide':'guides'}${q?' matching your search':''}`;if($('#no-results'))$('#no-results').hidden=total>0}
+search?.addEventListener('input',filterAdvice);filters.forEach(b=>b.addEventListener('click',()=>{category=b.dataset.filter;filters.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));filterAdvice()}));$('#clear-search')?.addEventListener('click',()=>{search.value='';category='All advice';filters.forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.filter===category)));filterAdvice();search.focus()});
+const dialog=$('#quote-dialog'),panels=$$('[data-quote-step]');let step=0,opener=null,message='';
+function go(n){step=n;panels.forEach((p,i)=>p.hidden=i!==n);$('.progress span',dialog).style.width=`${(n+1)*100/3}%`;$('#dialog-step').textContent=`Step ${n+1} of 3`;$('#quote-error').textContent='';const heading=$('h2',panels[n]);heading?.focus();dialog.scrollTop=0}
+function openQuote(event){event?.preventDefault();opener=document.activeElement;if(!dialog.open){dialog.showModal();go(0)}}
+$$('[data-quote]').forEach(a=>a.addEventListener('click',openQuote));$('.close-dialog',dialog)?.addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()}});dialog?.addEventListener('close',()=>opener?.focus());
+$$('[data-back]').forEach(b=>b.addEventListener('click',()=>go(step-1)));
+$('#choose-project')?.addEventListener('click',()=>{if(!$('input[name=service]:checked',dialog)){ $('#quote-error').textContent='Please choose a project type, or choose “Not sure yet”.';return}go(1)});
+const form=$('#quote-details');form?.addEventListener('submit',e=>{e.preventDefault();if(!form.reportValidity())return;if(!$('#customer-name').value.trim()){const input=$('#customer-name');input.setCustomValidity('Please enter your name.');input.reportValidity();return}const d=new FormData(form),postcode=String(d.get('postcode')||'').trim().toUpperCase();const postcodePattern=/^(GIR\s?0AA|[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2})$/i;
+ if(!postcodePattern.test(postcode)){const input=$('#postcode');input.setCustomValidity('Please enter a complete UK postcode, for example LS27 8AA.');input.reportValidity();return}
+ const clean=v=>String(v||'').trim().slice(0,1600),service=$('input[name=service]:checked',dialog).value;
+ message=`Hello Lyons Interiors, I would like to discuss a free quote.\n\nProject: ${service}\nName: ${clean(d.get('name'))}\nPostcode: ${postcode}\nProperty: ${clean(d.get('property'))}\nTiming: ${clean(d.get('timing'))}\n\nProject details:\n${clean(d.get('details'))||'I would like some advice on the right approach.'}\n\nPlease let me know the next step. I can send photos in this conversation.`;
+ $('#message-preview').textContent=message;$('#send-whatsapp').href=`https://wa.me/447306160862?text=${encodeURIComponent(message)}`;$('#send-sms').href=`sms:+447306160862${/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?'}body=${encodeURIComponent(message)}`;$('#copy-status').textContent='';go(2)
+});$('#customer-name')?.addEventListener('input',e=>e.target.setCustomValidity(''));$('#postcode')?.addEventListener('input',e=>e.target.setCustomValidity(''));
+$('#copy-enquiry')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(message);$('#copy-status').textContent='Copied. Paste this into your preferred messaging app.'}catch{const range=document.createRange();range.selectNodeContents($('#message-preview'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);$('#copy-status').textContent='Message selected. Use your device’s Copy command.'}});
+$$('[data-print]').forEach(b=>b.addEventListener('click',()=>window.print()));
+if(location.hash==='#quote')openQuote();
+})();

@@ -1,48 +1,25 @@
-# Lyons Interiors — website
+# Lyons Interiors
 
-A complete, dependency-free static website for residential and commercial plastering in Morley, Leeds and West Yorkshire.
+Complete standalone plastering and interior finishing website.
 
-**This is the independent `lyons-interiors` branch. Do not merge it into the Website-Scrapper main branch.** No Nutrition.Fitness, Love Stories Events or Castle Grove project has been changed. Repository creation was not exposed by the connected GitHub interface, so a separate branch is used for this standalone project.
+## Editable source
 
-## Build and deploy
+All original source is available as normal, readable files in **site/**. Edit site/content.mjs for services, advice articles and business information; site/build.mjs for page templates; site/style.css and site/app.js for presentation and interactions.
 
-Requires Node.js 22. No npm packages or database keys are needed.
+Run `npm run build` with Node.js 22. The dependency-free build generates and validates 31 HTML pages in public/. Vercel configuration is included. Set SITE_URL when connecting a custom domain; otherwise Vercel supplies its production hostname.
 
-```sh
-npm run build
-```
+This is the separate **lyons-interiors** branch of Website-Scrapper. **Do not merge it into main.** Existing Nutrition.Fitness, Love Stories Events and Castle Grove projects are unchanged. Creating a separate repository was not exposed by the connected GitHub interface.
 
-The generated website is in `public/`; `vercel.json` contains the build and security configuration. The build performs a SHA-256 integrity check and audits all generated internal links, page metadata and JSON-LD.
+## Deployment
 
-## Editable original source
+Production deployment requested: https://lyons-interiors-nufi2.vercel.app/
 
-The complete original source is stored losslessly in the four `source/part*.txt` files (Brotli-compressed JSON, Base64 transport). No code or article is omitted. This transport format keeps the connected publishing transfer compact.
+Inspector: https://vercel.com/nufi2/lyons-interiors/GnDm7AEq2Ej6kSJ693PpLKSryM1E
 
-```sh
-npm run unpack
-cd editable-source
-npm run build
-npm run check
-```
+See deployment-check.json for the actual public HTTP check results, not a claimed guarantee of availability. The initial Vercel deployment builds the integrity-checked GitHub snapshot at 81fa1a1c8f5006c0000f3d23663c36bccde4239a. Automatic Git push deployment is not configured. The archived source/part files remain for reproducibility; future editing should use site/.
 
-The restored source contains `content.mjs` (business data, services, 12 complete articles and FAQs), `build.mjs` (all page templates and metadata), `style.css`, `app.js`, configuration, the browser tests, the test report and a full development README. Edit and build in that restored folder; changes there do not automatically change the immutable transport snapshot. The unpack command refuses to overwrite an existing editable-source folder. For regular development, commit those restored files to a dedicated repository.
+## Enquiries and evidence
 
-## What is included
+The modal creates a message draft to send by text or WhatsApp. The visitor must press Send in their messaging app. This is not a background form submission or database-backed enquiry system. Supabase is not needed. WhatsApp account availability should be confirmed; text and phone are alternatives. No testimonials, verified rating badge, fixed prices, years of experience, accreditations or project counts are invented. Interior photos are clearly marked as inspiration, not completed Lyons projects. Actual work links to the supplied Instagram profile.
 
-31 HTML pages: homepage, six service pages, service directory, pricing guidance, searchable advice library and twelve full articles, business/about/work/coverage/contact pages, a printable preparation checklist, three utility notices and a custom 404. Twenty-seven pages are included in the XML sitemap.
-
-Customer-led copy focuses on a better finished room, common concerns, a clear three-step plan and prominent quote requests. A responsive modal creates a structured enquiry to send by text or WhatsApp, with click-to-call alternatives. Search and category filters work entirely in the browser. Every article is present in its own static HTML and remains readable without JavaScript.
-
-## Enquiries and data
-
-The visitor must press Send in their messaging app. This is not a background form submission, an email delivery system or a confirmed booking. The website does not store enquiry details. Supabase was not needed for this release. WhatsApp availability should be confirmed by the business; SMS and phone remain alternative routes.
-
-## Evidence and launch review
-
-Business contact and service information comes from the supplied brief. The reported Google rating could not be independently verified and is not displayed as a verified badge. No testimonials, years of experience, accreditations, project counts, fixed rates or guarantees have been invented. Interior images are marked as inspiration, not claimed as completed work. Actual project updates link to the supplied Instagram profile.
-
-Before paid promotion, the business owner should approve copy, provide real project photographs and a confirmed review-profile link, confirm messaging arrangements, and connect the desired domain. Set SITE_URL when using a custom domain; otherwise the generator uses VERCEL_PROJECT_PRODUCTION_URL. The local fallback hostname is not proof of a deployment. No conversion rate, Google ranking, independent accessibility certification or live Lighthouse score is claimed.
-
-## Local test result
-
-31 HTML pages and 995 internal link references passed the static audit. Browser interaction checks covered quote validation and preview, correct SMS destination, keyboard dismissal and focus restoration, advice filtering, mobile navigation and no-JavaScript article access. Homepage layouts were checked at 1440, 1024, 768, 390 and 320 pixels. Remote images were not downloaded by the network-restricted local browser.
+The business owner should approve the copy and provide authentic project photography, a confirmed Google review link and the desired domain before paid promotion. No Google ranking, conversion rate or independent Lighthouse score is guaranteed. See site/README.md for development notes and site/test-report.json for local browser checks.

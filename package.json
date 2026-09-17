@@ -1,1 +1,13 @@
-{"name":"lyons-interiors","version":"1.0.0","private":true,"type":"module","scripts":{"build":"node build.mjs","unpack":"node build.mjs --unpack"},"engines":{"node":"22.x"}}
+{
+  "name": "lyons-interiors",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "cd site && node check.mjs"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

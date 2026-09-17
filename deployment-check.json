@@ -1,0 +1,118 @@
+{
+  "checkedAt": "2026-09-17T07:27:50.823Z",
+  "origin": "https://lyons-interiors-nufi2.vercel.app",
+  "publicSiteVerified": false,
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252F%26nonce%3D1dbd9bcb1591c407e8f7148c6a1846f46be58da5bbbff0a5bd9098ecc4702da0",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Login – Vercel",
+      "canonical": "https://vercel.com/login",
+      "hasLyonsContent": false
+    },
+    {
+      "path": "/advice/",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252Fadvice%252F%26nonce%3Ddce919c0a36aca57f0171be3f40e4b10f8813e081b14443e582c3486eb38fe57",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Login – Vercel",
+      "canonical": "https://vercel.com/login",
+      "hasLyonsContent": false
+    },
+    {
+      "path": "/advice/plastering-cost-leeds/",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252Fadvice%252Fplastering-cost-leeds%252F%26nonce%3D8dcdda4c71245ce9d76caa3fc56810118b1f7afeeccef5df1f231f2eb6c4a3f5",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Login – Vercel",
+      "canonical": "https://vercel.com/login",
+      "hasLyonsContent": false
+    },
+    {
+      "path": "/services/wall-skimming/",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252Fservices%252Fwall-skimming%252F%26nonce%3D633ba9c0d3f1a5e33b8b12e2d3e37b4f0a1e3f94f558ec9a9955cb24a3dfbba8",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Login – Vercel",
+      "canonical": "https://vercel.com/login",
+      "hasLyonsContent": false
+    },
+    {
+      "path": "/pricing/",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252Fpricing%252F%26nonce%3D27eb7f2d5138ebb60e1d6e4c17170535aac0624121f2d328b6975a35187dfe7c",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Login – Vercel",
+      "canonical": "https://vercel.com/login",
+      "hasLyonsContent": false
+    },
+    {
+      "path": "/contact/",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252Fcontact%252F%26nonce%3D67e8f7d6d410530946e09ad5790ba8b26bc30e4da2eb07032429337bf3354192",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Login – Vercel",
+      "canonical": "https://vercel.com/login",
+      "hasLyonsContent": false
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252Fsitemap.xml%26nonce%3D129097f4ff89ec7e08b04836adbb8d1b3568b9b509c63b3f35613e7f039fe55a",
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252Frobots.txt%26nonce%3Da900cd02718220dd5ae77d521f3e4b665ef09ef8e8856d8da23f9832279fc057",
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/app.js",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252Fapp.js%26nonce%3D803a78cd652d864ebf0de5e07306a5cc5dce741f69cf3be2c013e67701b2eb39",
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/style.css",
+      "status": 200,
+      "finalUrl": "https://vercel.com/login?next=%2Fsso-api%3Furl%3Dhttps%253A%252F%252Flyons-interiors-nufi2.vercel.app%252Fstyle.css%26nonce%3D35067232053b8441fd17016ce0302fe1575676b7bb56c84429191783e588c094",
+      "contentType": "text/html; charset=utf-8"
+    }
+  ],
+  "images": [
+    {
+      "id": "photo-1600210492486-724fe5c67fb0",
+      "status": 200,
+      "contentType": "image/jpeg"
+    },
+    {
+      "id": "photo-1600607687939-ce8a6c25118c",
+      "status": 200,
+      "contentType": "image/jpeg"
+    },
+    {
+      "id": "photo-1616486338812-3dadae4b4ace",
+      "status": 200,
+      "contentType": "image/jpeg"
+    },
+    {
+      "id": "photo-1748679979638-e02b2df71540",
+      "status": 200,
+      "contentType": "image/jpeg"
+    },
+    {
+      "id": "photo-1497366754035-f200968a6e72",
+      "status": 200,
+      "contentType": "image/jpeg"
+    },
+    {
+      "id": "photo-1741559935512-3b018321e35f",
+      "status": 200,
+      "contentType": "image/jpeg"
+    }
+  ],
+  "note": "Public HTTP smoke check only. No private Vercel APIs, authentication bypass, user messages, analytics or conversion claims."
+}
