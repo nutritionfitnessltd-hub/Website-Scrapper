@@ -1,0 +1,6 @@
+{
+  "encoding": "brotli+base64",
+  "sha256": "a2f0578b5b960561c7aaf0ad9d0012bcaba884e7a45920db0471d7a890e82463",
+  "parts": ["source/part01.txt", "source/part02.txt", "source/part03.txt", "source/part04.txt"],
+  "files": ["README.md", "build.mjs", "content.mjs", "style.css", "app.js", "package.json", "vercel.json", "check.mjs", "tests/browser.py", "test-report.json"]
+}
